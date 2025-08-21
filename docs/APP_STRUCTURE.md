@@ -3,7 +3,7 @@
 This app is an Electron desktop application with two UI layers:
 
 - `src/`: Electron main process and the lightweight, always-on desktop UIs (header, listen, ask, compact settings) rendered via simple HTML/Lit.
-- `pickleglass_web/`: A Next.js web app that powers larger flows such as Settings, Personalize, and Activity. It can run via a dev server in development or be statically exported and served locally by Electron in production.
+- `pickleglass_web/`: A Next.js web app that powers larger flows such as Settings, Personalize, and Activity. It can run via a dev server in development or be statically exported and served locally by Electron in production. (Brand: Revnautix)
 
 Electron coordinates both layers, exposes OS capabilities, manages windows, and bridges app logic to the renderers.
 
@@ -12,7 +12,7 @@ Electron coordinates both layers, exposes OS capabilities, manages windows, and 
 ## Top-level directories
 
 - `src/`: Electron app code and core services
-  - `index.js`: Electron main entry. Initializes services, starts local servers, creates windows, and handles deep links (`pickleglass://`).
+  - `index.js`: Electron main entry. Initializes services, starts local servers, creates windows, and handles deep links (`revnautix://`).
   - `preload.js`: Exposes safe IPC APIs from main to renderers.
   - `bridge/`: IPC wiring from renderer to main process logic
     - `windowBridge.js`: Handlers for window operations (open, move, resize, etc.).
@@ -59,7 +59,7 @@ On startup, `src/index.js`:
    - Large standalone windows (e.g., Personalize) are opened on demand (`openPersonalizeWindow`).
 4. Wires IPC bridges (`featureBridge`, `windowBridge`) to route renderer requests to services and DB.
 
-Deep links such as `pickleglass://personalize` are handled in `index.js` and routed to the appropriate Electron window/navigation.
+Deep links such as `revnautix://personalize` are handled in `index.js` and routed to the appropriate Electron window/navigation.
 
 ---
 

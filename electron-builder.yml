@@ -1,23 +1,23 @@
 # electron-builder.yml
 
 # The unique application ID
-appId: com.pickle.glass
+appId: com.revnautix.app
 
 # The user-facing application name
-productName: Glass
+productName: Revnautix
 
 # Publish configuration for GitHub releases
 publish:
     provider: github
-    owner: pickle-com
+    owner: revnautix
     repo: glass
     releaseType: draft
 
 # Protocols configuration for deep linking
 protocols:
-    name: PickleGlass Protocol
+    name: Revnautix Protocol
     schemes: 
-        - pickleglass
+        - revnautix
 
 # List of files to be included in the app package
 files:
@@ -33,6 +33,8 @@ extraResources:
       to: out
     - from: bin/${arch}
       to: bin
+    - from: data
+      to: data
 
 asarUnpack:
     - "src/ui/assets/SystemAudioDump"

@@ -20,10 +20,8 @@ export default function DownloadPage() {
   return (
     <div className="p-8">
       <div className="max-w-4xl mx-auto text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Download pickleglass</h1>
-        <p className="text-lg text-gray-600 mb-12">
-          Use pickleglass on various platforms
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Download Revnautix</h1>
+        <p className="text-lg text-gray-600 mb-12">Use Revnautix on various platforms</p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white rounded-lg border border-gray-200 p-8 hover:shadow-lg transition-shadow">

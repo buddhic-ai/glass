@@ -120,7 +120,7 @@ const userInfoListeners: Array<(userInfo: UserProfile | null) => void> = [];
 export const getUserInfo = (): UserProfile | null => {
   if (typeof window === 'undefined') return null;
   
-  const storedUserInfo = localStorage.getItem('pickleglass_user');
+  const storedUserInfo = localStorage.getItem('revnautix_user') || localStorage.getItem('pickleglass_user');
   if (storedUserInfo) {
     try {
       return JSON.parse(storedUserInfo);
@@ -136,8 +136,10 @@ export const setUserInfo = (userInfo: UserProfile | null, skipEvents: boolean = 
   if (typeof window === 'undefined') return;
   
   if (userInfo) {
-    localStorage.setItem('pickleglass_user', JSON.stringify(userInfo));
+    localStorage.setItem('revnautix_user', JSON.stringify(userInfo));
+    localStorage.removeItem('pickleglass_user');
   } else {
+    localStorage.removeItem('revnautix_user');
     localStorage.removeItem('pickleglass_user');
   }
   

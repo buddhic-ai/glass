@@ -29,15 +29,16 @@ function focusMainWindow() {
 
 function setupProtocolHandling(onUrl) {
     try {
-        if (!app.isDefaultProtocolClient('pickleglass')) {
-            const success = app.setAsDefaultProtocolClient('pickleglass');
+        const currentScheme = app.isDefaultProtocolClient('revnautix') ? 'revnautix' : null;
+        if (!currentScheme) {
+            const success = app.setAsDefaultProtocolClient('revnautix');
             if (success) {
-                console.log('[Protocol] Successfully set as default protocol client for pickleglass://');
+                console.log('[Protocol] Successfully set as default protocol client for revnautix://');
             } else {
                 console.warn('[Protocol] Failed to set as default protocol client - this may affect deep linking');
             }
         } else {
-            console.log('[Protocol] Already registered as default protocol client for pickleglass://');
+            console.log(`[Protocol] Already registered as default protocol client for ${currentScheme}://`);
         }
     } catch (error) {
         console.error('[Protocol] Error during protocol registration:', error);
@@ -47,7 +48,7 @@ function setupProtocolHandling(onUrl) {
         console.log('[Protocol] Second instance command line:', commandLine);
         focusMainWindow();
         for (const arg of commandLine) {
-            if (arg && typeof arg === 'string' && arg.startsWith('pickleglass://')) {
+            if (arg && typeof arg === 'string' && arg.startsWith('revnautix://')) {
                 const cleanUrl = arg.replace(/[\\₩]/g, '');
                 if (process.platform === 'win32') {
                     if (!cleanUrl.includes(':') || cleanUrl.indexOf('://') === cleanUrl.lastIndexOf(':')) {
@@ -65,7 +66,7 @@ function setupProtocolHandling(onUrl) {
     app.on('open-url', (event, url) => {
         event.preventDefault();
         console.log('[Protocol] Received URL via open-url:', url);
-        if (!url || !url.startsWith('pickleglass://')) {
+        if (!url || !url.startsWith('revnautix://')) {
             console.warn('[Protocol] Invalid URL format:', url);
             return;
         }
@@ -79,7 +80,7 @@ function setupProtocolHandling(onUrl) {
 
     if (process.platform === 'win32') {
         for (const arg of process.argv) {
-            if (arg && typeof arg === 'string' && arg.startsWith('pickleglass://')) {
+            if (arg && typeof arg === 'string' && arg.startsWith('revnautix://')) {
                 const cleanUrl = arg.replace(/[\\₩]/g, '');
                 if (!cleanUrl.includes(':') || cleanUrl.indexOf('://') === cleanUrl.lastIndexOf(':')) {
                     console.log('[Protocol] Found protocol URL in initial arguments:', cleanUrl);

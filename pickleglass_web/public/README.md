@@ -4,7 +4,7 @@ This folder contains static files.
 
 ## Logo Image
 
-**@symbol.svg** - Logo image for the pickleglass application
+**@symbol.svg** - Logo image
 
 ### Requirements:
 - Filename: `symbol.png`

@@ -16,25 +16,25 @@ async function getAvailablePort() {
 async function startWebStack(eventBridge) {
   console.log('NODE_ENV =', process.env.NODE_ENV);
   const apiPort = await getAvailablePort();
-  const externalWebUrl = process.env.pickleglass_WEB_URL && process.env.pickleglass_WEB_URL.startsWith('http')
-    ? process.env.pickleglass_WEB_URL
+  const externalWebUrl = (process.env.revnautix_WEB_URL || process.env.pickleglass_WEB_URL) && (process.env.revnautix_WEB_URL || process.env.pickleglass_WEB_URL).startsWith('http')
+    ? (process.env.revnautix_WEB_URL || process.env.pickleglass_WEB_URL)
     : null;
   const frontendPort = externalWebUrl ? (new URL(externalWebUrl).port || '3000') : await getAvailablePort();
 
   console.log(`🔧 Allocated ports: API=${apiPort}, Frontend=${frontendPort}`);
 
-  process.env.pickleglass_API_PORT = apiPort.toString();
-  process.env.pickleglass_API_URL = `http://localhost:${apiPort}`;
-  process.env.pickleglass_WEB_PORT = frontendPort.toString();
+  process.env.revnautix_API_PORT = apiPort.toString();
+  process.env.revnautix_API_URL = `http://localhost:${apiPort}`;
+  process.env.revnautix_WEB_PORT = frontendPort.toString();
   if (!externalWebUrl) {
-    process.env.pickleglass_WEB_URL = `http://localhost:${frontendPort}`;
+    process.env.revnautix_WEB_URL = `http://localhost:${frontendPort}`;
   } else {
-    process.env.pickleglass_WEB_URL = externalWebUrl;
+    process.env.revnautix_WEB_URL = externalWebUrl;
   }
 
   console.log(`🌍 Environment variables set:`, {
-    pickleglass_API_URL: process.env.pickleglass_API_URL,
-    pickleglass_WEB_URL: process.env.pickleglass_WEB_URL
+    revnautix_API_URL: process.env.revnautix_API_URL,
+    revnautix_WEB_URL: process.env.revnautix_WEB_URL
   });
 
   const createBackendApp = require('../../pickleglass_web/backend_node');

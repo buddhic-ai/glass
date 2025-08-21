@@ -6,7 +6,7 @@ const { identifyUser } = require('./middleware/auth');
 function createApp(eventBridge) {
     const app = express();
 
-    const webUrl = process.env.pickleglass_WEB_URL || 'http://localhost:3000';
+    const webUrl = process.env.revnautix_WEB_URL || process.env.pickleglass_WEB_URL || 'http://localhost:3000';
     console.log(`🔧 Backend CORS configured for: ${webUrl}`);
 
     app.use(cors({
@@ -17,7 +17,7 @@ function createApp(eventBridge) {
     app.use(express.json());
 
     app.get('/', (req, res) => {
-        res.json({ message: "pickleglass API is running" });
+        res.json({ message: "Revnautix API is running" });
     });
 
     app.use((req, res, next) => {

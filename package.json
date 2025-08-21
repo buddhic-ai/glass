@@ -1,6 +1,6 @@
 {
-    "name": "pickle-glass",
-    "productName": "Glass",
+    "name": "revnautix",
+    "productName": "Revnautix",
     "version": "0.2.4",
     "description": "Cl*ely for Free",
     "main": "src/index.js",
@@ -22,15 +22,15 @@
         "watch:renderer": "node build.js --watch"
     },
     "keywords": [
-        "glass",
-        "pickle glass",
+        "revnautix",
+        "crm",
         "ai assistant",
         "real-time",
         "live summary",
         "contextual ai"
     ],
     "author": {
-        "name": "Pickle Team"
+        "name": "Revnautix"
     },
     "license": "GPL-3.0",
     "dependencies": {

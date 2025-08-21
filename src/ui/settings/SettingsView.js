@@ -1252,7 +1252,7 @@ export class SettingsView extends LitElement {
                         <div class="provider-key-group">
                             <label for="key-input-${id}">${config.name} API Key</label>
                             <input type="password" id="key-input-${id}"
-                                placeholder=${loggedIn ? "Using Pickle's Key" : `Enter ${config.name} API Key`} 
+                                placeholder=${loggedIn ? "Using Revnautix key" : `Enter ${config.name} API Key`} 
                                 .value=${this.apiKeys[id] || ''}
                             >
                             <div class="key-buttons">
@@ -1350,7 +1350,7 @@ export class SettingsView extends LitElement {
             <div class="settings-container">
                 <div class="header-section">
                     <div>
-                        <h1 class="app-title">Pickle Glass</h1>
+                        <h1 class="app-title">Revnautix</h1>
                         <div class="account-info">
                             ${this.firebaseUser
                                 ? html`Account: ${this.firebaseUser.email || 'Logged In'}`

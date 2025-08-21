@@ -191,7 +191,7 @@ class AuthService {
         }
         return {
             uid: this.currentUserId, // returns 'default_user'
-            email: 'contact@pickle.com',
+            email: 'contact@revnautix.com',
             displayName: 'Default User',
             mode: 'local',
             isLoggedIn: false,

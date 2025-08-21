@@ -348,7 +348,7 @@ async function handleCustomUrl(url) {
         console.log('[Custom URL] Processing URL:', url);
         
         // Validate and clean URL
-        if (!url || typeof url !== 'string' || !url.startsWith('pickleglass://')) {
+        if (!url || typeof url !== 'string' || !url.startsWith('revnautix://')) {
             console.error('[Custom URL] Invalid URL format:', url);
             return;
         }
@@ -626,7 +626,7 @@ async function initAutoUpdater() {
             dialog.showMessageBox({
                 type: 'info',
                 title: 'Application Update',
-                message: `A new version of PickleGlass (${releaseName}) has been downloaded. It will be installed the next time you launch the application.`,
+                message: `A new version of Revnautix (${releaseName}) has been downloaded. It will be installed the next time you launch the application.`,
                 buttons: ['Restart', 'Later']
             }).then(response => {
                 if (response.response === 0) {

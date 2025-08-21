@@ -8,18 +8,15 @@ class DatabaseInitializer {
     constructor() {
         this.isInitialized = false;
         
-        // 최종적으로 사용될 DB 경로 (쓰기 가능한 위치)
+        // Final DB path (writable location)
         const userDataPath = app.getPath('userData');
-        // In both development and production mode, the database is stored in the userData directory:
-        //   macOS: ~/Library/Application Support/Glass/pickleglass.db
-        //   Windows: %APPDATA%\Glass\pickleglass.db
-        this.dbPath = path.join(userDataPath, 'pickleglass.db');
         this.dataDir = userDataPath;
+        this.dbPath = path.join(userDataPath, 'revnautix.db');
 
         // The original DB path (read-only location in the package)
-        this.sourceDbPath = app.isPackaged
-            ? path.join(process.resourcesPath, 'data', 'pickleglass.db')
-            : path.join(app.getAppPath(), 'data', 'pickleglass.db');
+        const packagedDir = app.isPackaged ? path.join(process.resourcesPath, 'data') : path.join(app.getAppPath(), 'data');
+        const packagedNew = path.join(packagedDir, 'revnautix.db');
+        this.sourceDbPath = fs.existsSync(packagedNew) ? packagedNew : null;
     }
 
     ensureDatabaseExists() {

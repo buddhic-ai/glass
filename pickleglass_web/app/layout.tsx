@@ -5,8 +5,8 @@ import ClientLayout from '@/components/ClientLayout'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
-  title: 'pickleglass - AI Assistant',
-  description: 'Personalized AI Assistant for various contexts',
+  title: 'Revnautix — Talk to your CRM',
+  description: 'Revnautix helps you talk to your CRM and get work done faster.',
 }
 
 export default function RootLayout({

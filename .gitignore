@@ -94,7 +94,6 @@ out/
 .specstory
 .specstory/
 
-data/pickleglass.db
 pickleglass_web/backend/__pycache__/
 pickleglass_web/venv/
 

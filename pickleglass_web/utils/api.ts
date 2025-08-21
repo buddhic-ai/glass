@@ -316,6 +316,22 @@ export const deletePreset = async (id: string): Promise<void> => {
   if (!response.ok) throw new Error('Failed to delete preset');
 };
 
+export const getWhisperStatus = async (): Promise<{ enabled: boolean }> => {
+  const response = await apiCall(`/api/settings/whisper`, { method: 'GET' });
+  if (!response.ok) throw new Error('Failed to get whisper status');
+  return response.json();
+};
+
+export const enableWhisper = async (): Promise<void> => {
+  const response = await apiCall(`/api/settings/whisper/enable`, { method: 'POST' });
+  if (!response.ok) throw new Error('Failed to enable whisper');
+};
+
+export const disableWhisper = async (): Promise<void> => {
+  const response = await apiCall(`/api/settings/whisper/disable`, { method: 'POST' });
+  if (!response.ok) throw new Error('Failed to disable whisper');
+};
+
 export interface BatchData {
     profile?: UserProfile;
     presets?: PromptPreset[];

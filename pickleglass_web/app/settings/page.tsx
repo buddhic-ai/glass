@@ -10,7 +10,10 @@ import {
   checkApiKeyStatus,
   saveApiKey,
   deleteAccount,
-  logout
+  logout,
+  getWhisperStatus,
+  enableWhisper,
+  disableWhisper
 } from '@/utils/api'
 import { useRouter } from 'next/navigation'
 
@@ -35,6 +38,8 @@ export default function SettingsPage() {
   const router = useRouter()
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [confirmMessage, setConfirmMessage] = useState('')
+  const [whisperEnabled, setWhisperEnabled] = useState(false)
+  const [whisperSaving, setWhisperSaving] = useState(false)
 
   const fetchApiKeyStatus = async () => {
       try {
@@ -54,6 +59,8 @@ export default function SettingsPage() {
         setProfile(userProfile)
         setDisplayNameInput(userProfile.display_name)
         await fetchApiKeyStatus();
+        const ws = await getWhisperStatus();
+        setWhisperEnabled(!!ws.enabled);
       } catch (error) {
         console.error("Failed to fetch profile data:", error)
       }
@@ -196,6 +203,40 @@ export default function SettingsPage() {
         >
           Annually
         </button>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Speech-to-Text (Whisper)</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          Enable local Whisper STT to transcribe audio in the desktop app. This toggles the same setting available in the Electron UI.
+        </p>
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-gray-700">
+            Status: {whisperEnabled ? <span className="text-green-700">Enabled</span> : <span className="text-gray-700">Disabled</span>}
+          </div>
+          <button
+            onClick={async () => {
+              try {
+                setWhisperSaving(true)
+                if (whisperEnabled) {
+                  await disableWhisper()
+                  setWhisperEnabled(false)
+                } else {
+                  await enableWhisper()
+                  setWhisperEnabled(true)
+                }
+              } catch (error) {
+                console.error('Failed to toggle Whisper:', error)
+              } finally {
+                setWhisperSaving(false)
+              }
+            }}
+            disabled={whisperSaving}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${whisperEnabled ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-800 text-white hover:bg-gray-900'} ${whisperSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {whisperSaving ? 'Saving...' : whisperEnabled ? 'Disable Whisper' : 'Enable Whisper'}
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-6">
@@ -449,6 +490,41 @@ export default function SettingsPage() {
                 </div>
               </div>
             )}
+
+            {/* Whisper STT toggle (also available under Billing) */}
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Speech-to-Text (Whisper)</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Enable local Whisper STT to transcribe audio in the desktop app. This toggles the same setting available in the Electron UI.
+              </p>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-700">
+                  Status: {whisperEnabled ? <span className="text-green-700">Enabled</span> : <span className="text-gray-700">Disabled</span>}
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      setWhisperSaving(true)
+                      if (whisperEnabled) {
+                        await disableWhisper()
+                        setWhisperEnabled(false)
+                      } else {
+                        await enableWhisper()
+                        setWhisperEnabled(true)
+                      }
+                    } catch (error) {
+                      console.error('Failed to toggle Whisper:', error)
+                    } finally {
+                      setWhisperSaving(false)
+                    }
+                  }}
+                  disabled={whisperSaving}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${whisperEnabled ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-gray-800 text-white hover:bg-gray-900'} ${whisperSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {whisperSaving ? 'Saving...' : whisperEnabled ? 'Disable Whisper' : 'Enable Whisper'}
+                </button>
+              </div>
+            </div>
 
             {(isFirebaseMode || (!isFirebaseMode && !hasApiKey)) && (
                <div className="bg-white border border-red-300 rounded-lg p-6">

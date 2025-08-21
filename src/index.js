@@ -13,6 +13,10 @@ if (require('electron-squirrel-startup')) {
 
 const { app, BrowserWindow, shell, ipcMain, dialog, desktopCapturer, session } = require('electron');
 const { createWindows } = require('./window/windowManager.js');
+const { setupProtocolHandling, getPendingDeepLinkUrl, clearPendingDeepLinkUrl } = require('./main/protocol');
+const { startWebStack } = require('./main/webStack');
+const { setupWebDataHandlers } = require('./main/webDataHandlers');
+const { initAutoUpdater } = require('./main/autoUpdater');
 const listenService = require('./features/listen/listenService');
 const { initializeFirebase } = require('./features/common/services/firebaseClient');
 const databaseInitializer = require('./features/common/services/databaseInitializer');
@@ -42,124 +46,6 @@ global.modelStateService = modelStateService;
 const ollamaService = require('./features/common/services/ollamaService');
 const ollamaModelRepository = require('./features/common/repositories/ollamaModel');
 
-// Native deep link handling - cross-platform compatible
-let pendingDeepLinkUrl = null;
-
-function setupProtocolHandling() {
-    // Protocol registration - must be done before app is ready
-    try {
-        if (!app.isDefaultProtocolClient('pickleglass')) {
-            const success = app.setAsDefaultProtocolClient('pickleglass');
-            if (success) {
-                console.log('[Protocol] Successfully set as default protocol client for pickleglass://');
-            } else {
-                console.warn('[Protocol] Failed to set as default protocol client - this may affect deep linking');
-            }
-        } else {
-            console.log('[Protocol] Already registered as default protocol client for pickleglass://');
-        }
-    } catch (error) {
-        console.error('[Protocol] Error during protocol registration:', error);
-    }
-
-    // Handle protocol URLs on Windows/Linux
-    app.on('second-instance', (event, commandLine, workingDirectory) => {
-        console.log('[Protocol] Second instance command line:', commandLine);
-        
-        focusMainWindow();
-        
-        let protocolUrl = null;
-        
-        // Search through all command line arguments for a valid protocol URL
-        for (const arg of commandLine) {
-            if (arg && typeof arg === 'string' && arg.startsWith('pickleglass://')) {
-                // Clean up the URL by removing problematic characters
-                const cleanUrl = arg.replace(/[\\₩]/g, '');
-                
-                // Additional validation for Windows
-                if (process.platform === 'win32') {
-                    // On Windows, ensure the URL doesn't contain file path indicators
-                    if (!cleanUrl.includes(':') || cleanUrl.indexOf('://') === cleanUrl.lastIndexOf(':')) {
-                        protocolUrl = cleanUrl;
-                        break;
-                    }
-                } else {
-                    protocolUrl = cleanUrl;
-                    break;
-                }
-            }
-        }
-        
-        if (protocolUrl) {
-            console.log('[Protocol] Valid URL found from second instance:', protocolUrl);
-            handleCustomUrl(protocolUrl);
-        } else {
-            console.log('[Protocol] No valid protocol URL found in command line arguments');
-            console.log('[Protocol] Command line args:', commandLine);
-        }
-    });
-
-    // Handle protocol URLs on macOS
-    app.on('open-url', (event, url) => {
-        event.preventDefault();
-        console.log('[Protocol] Received URL via open-url:', url);
-        
-        if (!url || !url.startsWith('pickleglass://')) {
-            console.warn('[Protocol] Invalid URL format:', url);
-            return;
-        }
-
-        if (app.isReady()) {
-            handleCustomUrl(url);
-        } else {
-            pendingDeepLinkUrl = url;
-            console.log('[Protocol] App not ready, storing URL for later');
-        }
-    });
-}
-
-function focusMainWindow() {
-    const { windowPool } = require('./window/windowManager.js');
-    if (windowPool) {
-        const header = windowPool.get('header');
-        if (header && !header.isDestroyed()) {
-            if (header.isMinimized()) header.restore();
-            header.focus();
-            return true;
-        }
-    }
-    
-    // Fallback: focus any available window
-    const windows = BrowserWindow.getAllWindows();
-    if (windows.length > 0) {
-        const mainWindow = windows[0];
-        if (!mainWindow.isDestroyed()) {
-            if (mainWindow.isMinimized()) mainWindow.restore();
-            mainWindow.focus();
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-if (process.platform === 'win32') {
-    for (const arg of process.argv) {
-        if (arg && typeof arg === 'string' && arg.startsWith('pickleglass://')) {
-            // Clean up the URL by removing problematic characters (korean characters issue...)
-            const cleanUrl = arg.replace(/[\\₩]/g, '');
-            
-            if (!cleanUrl.includes(':') || cleanUrl.indexOf('://') === cleanUrl.lastIndexOf(':')) {
-                console.log('[Protocol] Found protocol URL in initial arguments:', cleanUrl);
-                pendingDeepLinkUrl = cleanUrl;
-                break;
-            }
-        }
-    }
-    
-    console.log('[Protocol] Initial process.argv:', process.argv);
-}
-
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
     app.quit();
@@ -167,7 +53,7 @@ if (!gotTheLock) {
 }
 
 // setup protocol after single instance lock
-setupProtocolHandling();
+setupProtocolHandling(handleCustomUrl);
 
 app.whenReady().then(async () => {
 
@@ -200,7 +86,7 @@ app.whenReady().then(async () => {
 
         featureBridge.initialize();  // 추가: featureBridge 초기화
         windowBridge.initialize();
-        setupWebDataHandlers();
+        setupWebDataHandlers(eventBridge);
 
         // Initialize Ollama models in database
         await ollamaModelRepository.initializeDefaultModels();
@@ -216,7 +102,7 @@ app.whenReady().then(async () => {
         }, 2000); // Wait 2 seconds after app start
 
         // Start web server and create windows ONLY after all initializations are successful
-        WEB_PORT = await startWebStack();
+        WEB_PORT = await startWebStack(eventBridge);
         console.log('Web front-end listening on', WEB_PORT);
         
         createWindows();
@@ -234,10 +120,11 @@ app.whenReady().then(async () => {
     initAutoUpdater();
 
     // Process any pending deep link after everything is initialized
-    if (pendingDeepLinkUrl) {
-        console.log('[Protocol] Processing pending URL:', pendingDeepLinkUrl);
-        handleCustomUrl(pendingDeepLinkUrl);
-        pendingDeepLinkUrl = null;
+    const p = getPendingDeepLinkUrl();
+    if (p) {
+        console.log('[Protocol] Processing pending URL:', p);
+        handleCustomUrl(p);
+        clearPendingDeepLinkUrl();
     }
 });
 
@@ -402,6 +289,18 @@ function setupWebDataHandlers() {
                     // Adapter injects UID
                     result = await presetRepository.delete(payload);
                     settingsService.notifyPresetUpdate('deleted', payload);
+                    break;
+                
+                // SETTINGS
+                case 'settings:whisper:enable':
+                    result = await modelStateService.setApiKey('whisper', 'local');
+                    break;
+                case 'settings:whisper:disable':
+                    result = await modelStateService.handleRemoveApiKey('whisper');
+                    break;
+                case 'settings:whisper:status':
+                    const keys = await modelStateService.getAllApiKeys();
+                    result = { enabled: !!(keys && keys.whisper) };
                     break;
                 
                 // BATCH

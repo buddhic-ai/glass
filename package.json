@@ -8,7 +8,7 @@
         "setup": "pnpm install && pnpm -C pickleglass_web run build && pnpm start",
         "start": "pnpm run build:renderer && electron .",
         "dev:web": "pnpm -C pickleglass_web run dev",
-        "dev": "cross-env pickleglass_WEB_URL=http://localhost:3000 pnpm -C pickleglass_web run dev & pnpm run watch:renderer & pnpm exec electron .",
+        "dev": "pickleglass_WEB_URL=http://localhost:3000 sh -c 'pnpm -C pickleglass_web run dev & wait-on http://localhost:3000 && (pnpm run watch:renderer & pnpm exec electron .)'",
         "package": "pnpm run build:all && node scripts/prepare-whisper.js && electron-builder --dir",
         "make": "pnpm run build:renderer && electron-forge make",
         "build": "pnpm run build:all && node scripts/prepare-whisper.js && electron-builder --config electron-builder.yml --publish never",

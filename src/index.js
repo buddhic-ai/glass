@@ -603,14 +603,22 @@ async function startWebStack() {
   };
 
   const apiPort = await getAvailablePort();
-  const frontendPort = await getAvailablePort();
+  // Allow using an external Next.js dev server for hot reload
+  const externalWebUrl = process.env.pickleglass_WEB_URL && process.env.pickleglass_WEB_URL.startsWith('http')
+    ? process.env.pickleglass_WEB_URL
+    : null;
+  const frontendPort = externalWebUrl ? (new URL(externalWebUrl).port || '3000') : await getAvailablePort();
 
   console.log(`🔧 Allocated ports: API=${apiPort}, Frontend=${frontendPort}`);
 
   process.env.pickleglass_API_PORT = apiPort.toString();
   process.env.pickleglass_API_URL = `http://localhost:${apiPort}`;
   process.env.pickleglass_WEB_PORT = frontendPort.toString();
-  process.env.pickleglass_WEB_URL = `http://localhost:${frontendPort}`;
+  if (!externalWebUrl) {
+    process.env.pickleglass_WEB_URL = `http://localhost:${frontendPort}`;
+  } else {
+    process.env.pickleglass_WEB_URL = externalWebUrl;
+  }
 
   console.log(`🌍 Environment variables set:`, {
     pickleglass_API_URL: process.env.pickleglass_API_URL,
@@ -626,7 +634,7 @@ async function startWebStack() {
 
   const fs = require('fs');
 
-  if (!fs.existsSync(staticDir)) {
+  if (!externalWebUrl && !fs.existsSync(staticDir)) {
     console.error(`============================================================`);
     console.error(`[ERROR] Frontend build directory not found!`);
     console.error(`Path: ${staticDir}`);
@@ -647,6 +655,13 @@ async function startWebStack() {
   const configPath = path.join(tempDir, 'runtime-config.json');
   fs.writeFileSync(configPath, JSON.stringify(runtimeConfig, null, 2));
   console.log(`📝 Runtime config created in temp location: ${configPath}`);
+
+  if (externalWebUrl) {
+    console.log(`🟡 Using external web dev server at ${externalWebUrl} (hot reload enabled)`);
+    console.log(`✅ API server will start on http://localhost:${apiPort}`);
+    // Skip starting static server; return external port
+    return parseInt(frontendPort, 10);
+  }
 
   const frontSrv = express();
   

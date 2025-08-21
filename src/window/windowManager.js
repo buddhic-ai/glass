@@ -425,10 +425,50 @@ const toggleContentProtection = () => {
 
 
 const openLoginPage = () => {
+    const existing = windowPool.get('login');
     const webUrl = process.env.revnautix_WEB_URL || 'http://localhost:3000';
-    const personalizeUrl = `${webUrl}/personalize?desktop=true`;
-    shell.openExternal(personalizeUrl);
-    console.log('Opening personalization page in external browser:', personalizeUrl);
+    const loginUrl = `${webUrl}/login?mode=electron`;
+
+    if (existing && !existing.isDestroyed()) {
+        existing.show();
+        existing.focus();
+        existing.loadURL(loginUrl);
+        return;
+    }
+
+    const loginWin = new BrowserWindow({
+        width: 1100,
+        height: 780,
+        minWidth: 900,
+        minHeight: 600,
+        show: true,
+        frame: true,
+        transparent: false,
+        vibrancy: false,
+        hasShadow: true,
+        skipTaskbar: false,
+        hiddenInMissionControl: false,
+        resizable: true,
+        fullscreenable: true,
+        title: 'Login',
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, '../preload.js'),
+        },
+    });
+
+    loginWin.setContentProtection(isContentProtectionOn);
+    loginWin.loadURL(loginUrl);
+    windowPool.set('login', loginWin);
+
+    loginWin.on('closed', () => {
+        windowPool.delete('login');
+    });
+
+    if (!app.isPackaged) {
+        // loginWin.webContents.openDevTools({ mode: 'detach' });
+    }
 };
 
 const openPersonalizePage = () => {

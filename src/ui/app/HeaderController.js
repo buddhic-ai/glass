@@ -147,9 +147,14 @@ class HeaderTransitionManager {
 
     // WelcomeHeader 콜백 메서드들
     async handleLoginOption() {
-        console.log('[HeaderController] Login option selected');
-        // No-op; web handles Supabase login. Could open web login if needed.
-        return;
+        console.log('[HeaderController] Login option selected - opening local login in header');
+        try {
+            if (window.api && window.api.common && typeof window.api.common.openLoginPage === 'function') {
+                await window.api.common.openLoginPage();
+            }
+        } catch (error) {
+            console.error('[HeaderController] Failed to open local login page:', error);
+        }
     }
 
     async handleApiKeyOption() {

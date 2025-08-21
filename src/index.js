@@ -571,9 +571,10 @@ function handlePersonalizeFromUrl(params) {
         if (header.isMinimized()) header.restore();
         header.focus();
         
-        const personalizeUrl = `http://localhost:${WEB_PORT}/settings`;
-        console.log(`[Custom URL] Navigating to personalize page: ${personalizeUrl}`);
-        header.webContents.loadURL(personalizeUrl);
+        const personalizeUrl = `http://localhost:${WEB_PORT}/personalize?desktop=true`;
+        console.log(`[Custom URL] Opening standalone personalize window: ${personalizeUrl}`);
+        const { openPersonalizeWindow } = require('./window/windowManager.js');
+        openPersonalizeWindow();
         
         BrowserWindow.getAllWindows().forEach(win => {
             win.webContents.send('enter-personalize-mode', {

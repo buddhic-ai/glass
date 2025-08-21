@@ -428,7 +428,70 @@ const openLoginPage = () => {
     const webUrl = process.env.pickleglass_WEB_URL || 'http://localhost:3000';
     const personalizeUrl = `${webUrl}/personalize?desktop=true`;
     shell.openExternal(personalizeUrl);
-    console.log('Opening personalization page:', personalizeUrl);
+    console.log('Opening personalization page in external browser:', personalizeUrl);
+};
+
+const openPersonalizePage = () => {
+    const header = windowPool.get('header');
+    if (!header || header.isDestroyed()) {
+        console.error('[WindowManager] Header window not found for openPersonalizePage');
+        return;
+    }
+    const webUrl = process.env.pickleglass_WEB_URL || 'http://localhost:3000';
+    const personalizeUrl = `${webUrl}/personalize?desktop=true`;
+    console.log('Loading personalization page in app:', personalizeUrl);
+    header.webContents.loadURL(personalizeUrl);
+    if (!header.isVisible()) header.show();
+    header.focus();
+};
+
+const openPersonalizeWindow = () => {
+    const existing = windowPool.get('personalize');
+    const webUrl = process.env.pickleglass_WEB_URL || 'http://localhost:3000';
+    const personalizeUrl = `${webUrl}/personalize?desktop=true`;
+
+    if (existing && !existing.isDestroyed()) {
+        existing.show();
+        existing.focus();
+        existing.loadURL(personalizeUrl);
+        return;
+    }
+
+    const personalize = new BrowserWindow({
+        width: 1100,
+        height: 780,
+        minWidth: 900,
+        minHeight: 600,
+        show: true,
+        frame: true,
+        transparent: false,
+        vibrancy: false,
+        hasShadow: true,
+        skipTaskbar: false,
+        hiddenInMissionControl: false,
+        resizable: true,
+        fullscreenable: true,
+        title: 'Personalize',
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, '../preload.js'),
+        },
+    });
+
+    personalize.setContentProtection(isContentProtectionOn);
+    personalize.loadURL(personalizeUrl);
+    windowPool.set('personalize', personalize);
+
+    personalize.on('closed', () => {
+        windowPool.delete('personalize');
+    });
+
+    if (!app.isPackaged) {
+        // personalize.webContents.openDevTools({ mode: 'detach' });
+    }
+
+    return;
 };
 
 
@@ -553,6 +616,12 @@ function createFeatureWindows(header, namesToCreate) {
                 if (!app.isPackaged) {
                     // settings.webContents.openDevTools({ mode: 'detach' });
                 }
+                break;
+            }
+
+            // personalize (standalone)
+            case 'personalize': {
+                openPersonalizeWindow();
                 break;
             }
 
@@ -800,6 +869,8 @@ module.exports = {
     hideSettingsWindow,
     cancelHideSettingsWindow,
     openLoginPage,
+    openPersonalizePage,
+    openPersonalizeWindow,
     moveWindowStep,
     handleHeaderStateChanged,
     handleHeaderAnimationFinished,

@@ -652,13 +652,9 @@ export class SettingsView extends LitElement {
 
 
     async handleSaveKey(provider) {
-        const input = this.shadowRoot.querySelector(`#key-input-${provider}`);
-        if (!input) return;
-        const key = input.value;
-        
-        // For Ollama, we need to ensure it's ready first
+        // Handle providers that do not use a text input first
         if (provider === 'ollama') {
-        this.saving = true;
+            this.saving = true;
             
             // First ensure Ollama is installed and running
             const ensureResult = await window.api.settingsView.ensureOllamaReady();
@@ -680,8 +676,7 @@ export class SettingsView extends LitElement {
             this.saving = false;
             return;
         }
-        
-        // For Whisper, just enable it
+
         if (provider === 'whisper') {
             this.saving = true;
             const result = await window.api.settingsView.validateKey({ provider, key: 'local' });
@@ -694,11 +689,15 @@ export class SettingsView extends LitElement {
             this.saving = false;
             return;
         }
-        
-        // For other providers, use the normal flow
+
+        // For other providers, read the input value and proceed
+        const input = this.shadowRoot.querySelector(`#key-input-${provider}`);
+        if (!input) return;
+        const key = input.value;
+
         this.saving = true;
         const result = await window.api.settingsView.validateKey({ provider, key });
-        
+
         if (result.success) {
             await this.refreshModelData();
         } else {

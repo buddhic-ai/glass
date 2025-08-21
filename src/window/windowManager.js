@@ -483,7 +483,7 @@ function createFeatureWindows(header, namesToCreate) {
                     });
                 }
                 if (!app.isPackaged) {
-                    listen.webContents.openDevTools({ mode: 'detach' });
+                    // listen.webContents.openDevTools({ mode: 'detach' });
                 }
                 windowPool.set('listen', listen);
                 break;
@@ -516,7 +516,7 @@ function createFeatureWindows(header, namesToCreate) {
                 
                 // Open DevTools in development
                 if (!app.isPackaged) {
-                    ask.webContents.openDevTools({ mode: 'detach' });
+                    // ask.webContents.openDevTools({ mode: 'detach' });
                 }
                 windowPool.set('ask', ask);
                 break;
@@ -551,7 +551,7 @@ function createFeatureWindows(header, namesToCreate) {
                 windowPool.set('settings', settings);  
 
                 if (!app.isPackaged) {
-                    settings.webContents.openDevTools({ mode: 'detach' });
+                    // settings.webContents.openDevTools({ mode: 'detach' });
                 }
                 break;
             }
@@ -589,7 +589,7 @@ function createFeatureWindows(header, namesToCreate) {
 
                 windowPool.set('shortcut-settings', shortcutEditor);
                 if (!app.isPackaged) {
-                    shortcutEditor.webContents.openDevTools({ mode: 'detach' });
+                    // shortcutEditor.webContents.openDevTools({ mode: 'detach' });
                 }
                 break;
             }
@@ -724,7 +724,7 @@ function createWindows() {
     
     // Open DevTools in development
     if (!app.isPackaged) {
-        header.webContents.openDevTools({ mode: 'detach' });
+        // header.webContents.openDevTools({ mode: 'detach' });
     }
 
     header.on('focus', () => {

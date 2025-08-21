@@ -3,7 +3,6 @@ const { BrowserWindow, shell } = require('electron');
 const { getFirebaseAuth } = require('./firebaseClient');
 const fetch = require('node-fetch');
 const encryptionService = require('./encryptionService');
-const migrationService = require('./migrationService');
 const sessionRepository = require('../repositories/session');
 const providerSettingsRepository = require('../repositories/providerSettings');
 const permissionService = require('./permissionService');
@@ -72,10 +71,6 @@ class AuthService {
                     } else {
                         await encryptionService.initializeKey(user.uid);
                     }
-
-                    // ** Check for and run data migration for the user **
-                    // No 'await' here, so it runs in the background without blocking startup.
-                    migrationService.checkAndRunMigration(user);
 
                     // ***** CRITICAL: Wait for the virtual key and model state update to complete *****
                     try {

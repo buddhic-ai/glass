@@ -48,7 +48,7 @@ node --version
 ### Installation
 
 ```bash
-npm run setup
+pnpm run setup
 ```
 
 ## Highlights

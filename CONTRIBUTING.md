@@ -78,7 +78,7 @@ node --version
 ## Setup and Build
 
 ```bash
-npm run setup
+pnpm run setup
 ```
 Please ensure that you can make a full production build before pushing code.
 
@@ -87,7 +87,7 @@ Please ensure that you can make a full production build before pushing code.
 ## Linting
 
 ```bash
-npm run lint
+pnpm run lint
 ```
 
 If you get errors, be sure to fix them before committing.

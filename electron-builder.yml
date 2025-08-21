@@ -31,6 +31,8 @@ files:
 extraResources:
     - from: pickleglass_web/out
       to: out
+    - from: bin/${arch}
+      to: bin
 
 asarUnpack:
     - "src/ui/assets/SystemAudioDump"

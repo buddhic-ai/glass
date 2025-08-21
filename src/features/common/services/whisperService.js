@@ -65,6 +65,55 @@ class WhisperService extends EventEmitter {
         return process.platform;
     }
 
+    // Resolve app resources path (Electron packaged) or fall back to a sensible default in dev
+    getResourcesPath() {
+        try {
+            if (process && process.resourcesPath) {
+                return process.resourcesPath;
+            }
+        } catch (e) {}
+        return path.resolve(process.cwd(), 'resources');
+    }
+
+    // Candidate locations for a bundled whisper binary inside the app package or repo
+    getBundledBinaryCandidates() {
+        const platform = this.getPlatform();
+        const resourcesPath = this.getResourcesPath();
+        const candidates = [];
+
+        const names = platform === 'win32'
+            ? ['whisper-whisper.exe', 'whisper.exe', 'main.exe']
+            : ['whisper-cli', 'whisper'];
+
+        // In packaged builds we copy only the current arch's binary into Resources/bin
+        const isArm64Runtime = process.arch === 'arm64';
+        const binDirCandidates = [
+            path.join(resourcesPath, 'bin'),
+            // Dev fallbacks below
+            platform === 'darwin' ? path.join(resourcesPath, 'bin', isArm64Runtime ? 'arm64' : 'x64') : resourcesPath,
+        ];
+
+        for (const dir of binDirCandidates) {
+            for (const name of names) {
+                candidates.push(path.join(dir, name));
+            }
+        }
+
+        // Dev-time fallbacks: check project-local bin directories
+        const repoBin = path.resolve(__dirname, '../../../..', 'bin');
+        for (const name of names) {
+            if (platform === 'darwin') {
+                candidates.push(path.join(repoBin, isArm64Runtime ? 'arm64' : 'x64', name));
+                candidates.push(path.join(repoBin, isArm64Runtime ? 'x64' : 'arm64', name));
+            } else {
+                candidates.push(path.join(repoBin, name));
+                candidates.push(path.join(repoBin, platform, name));
+            }
+        }
+
+        return candidates;
+    }
+
     async checkCommand(command) {
         try {
             const platform = this.getPlatform();
@@ -381,6 +430,17 @@ class WhisperService extends EventEmitter {
             return;
         } catch (error) {
             // Continue to installation
+        }
+
+        // Check for a bundled binary inside the packaged app or repo before attempting installation
+        const bundledCandidates = this.getBundledBinaryCandidates();
+        for (const candidate of bundledCandidates) {
+            try {
+                await fsPromises.access(candidate, fs.constants.X_OK);
+                this.whisperPath = candidate;
+                console.log(`[WhisperService] Found bundled whisper at: ${this.whisperPath}`);
+                return;
+            } catch (e) {}
         }
 
         const platform = this.getPlatform();

@@ -15,6 +15,9 @@ export default function ActivityPage() {
   const [sessions, setSessions] = useState<Session[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+  const [banner, setBanner] = useState<string | null>(null)
 
   const fetchSessions = async () => {
     try {
@@ -50,21 +53,31 @@ export default function ActivityPage() {
   }
 
   const handleDelete = async (sessionId: string) => {
-    if (!window.confirm('Are you sure you want to delete this activity? This cannot be undone.')) return;
-    setDeletingId(sessionId);
+    setPendingDeleteId(sessionId)
+    setShowConfirmModal(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId) return
+    setDeletingId(pendingDeleteId)
+    setShowConfirmModal(false)
     try {
-      await deleteSession(sessionId);
-      setSessions(sessions => sessions.filter(s => s.id !== sessionId));
+      await deleteSession(pendingDeleteId)
+      setSessions(sessions => sessions.filter(s => s.id !== pendingDeleteId))
     } catch (error) {
-      alert('Failed to delete activity.');
-      console.error(error);
+      setBanner('Failed to delete activity.')
+      console.error(error)
     } finally {
-      setDeletingId(null);
+      setDeletingId(null)
+      setPendingDeleteId(null)
     }
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {banner && (
+        <div className="px-8 py-3 bg-red-50 border-b border-red-100 text-red-700 text-sm">{banner}</div>
+      )}
       <div className="max-w-4xl mx-auto px-8 py-12">
         <div className="text-center mb-12">
           <h1 className="text-2xl text-gray-600">
@@ -119,6 +132,28 @@ export default function ActivityPage() {
           )}
         </div>
       </div>
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirm Delete</h3>
+            <p className="text-sm text-gray-700">Are you sure you want to delete this activity? This cannot be undone.</p>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+                onClick={() => setShowConfirmModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700"
+                onClick={confirmDelete}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 

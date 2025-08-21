@@ -13,6 +13,20 @@ export default function PersonalizePage() {
   const [saving, setSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
+  // UI state: modals and banners
+  const [showTextModal, setShowTextModal] = useState(false);
+  const [textModalTitle, setTextModalTitle] = useState('');
+  const [textModalDefault, setTextModalDefault] = useState('');
+  const [textModalValue, setTextModalValue] = useState('');
+  const [textModalOnSubmit, setTextModalOnSubmit] = useState<null | ((value: string) => Promise<void> | void)>(null);
+
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmMessage, setConfirmMessage] = useState('');
+  const [onConfirm, setOnConfirm] = useState<null | (() => void)>(null);
+  const [onCancel, setOnCancel] = useState<null | (() => void)>(null);
+
+  const [banner, setBanner] = useState<{ type: 'error' | 'info'; message: string } | null>(null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -36,8 +50,17 @@ export default function PersonalizePage() {
   }, []);
 
   const handlePresetClick = (preset: PromptPreset) => {
-    if (isDirty && !window.confirm("You have unsaved changes. Are you sure you want to switch?")) {
-        return;
+    if (isDirty) {
+      setConfirmMessage('You have unsaved changes. Are you sure you want to switch?');
+      setOnConfirm(() => () => {
+        setSelectedPreset(preset);
+        setEditorContent(preset.prompt);
+        setIsDirty(false);
+        setShowConfirmModal(false);
+      });
+      setOnCancel(() => () => setShowConfirmModal(false));
+      setShowConfirmModal(true);
+      return;
     }
     setSelectedPreset(preset);
     setEditorContent(preset.prompt);
@@ -53,8 +76,8 @@ export default function PersonalizePage() {
     if (!selectedPreset || saving || !isDirty) return;
     
     if (selectedPreset.is_default === 1) {
-        alert("Default presets cannot be modified.");
-        return;
+      setBanner({ type: 'error', message: 'Default presets cannot be modified.' });
+      return;
     }
     
     try {
@@ -74,77 +97,80 @@ export default function PersonalizePage() {
       setIsDirty(false);
     } catch (error) {
       console.error("Save failed:", error);
-      alert("Failed to save preset. See console for details.");
+      setBanner({ type: 'error', message: 'Failed to save preset. See console for details.' });
     } finally {
       setSaving(false);
     }
   };
 
   const handleCreateNewPreset = async () => {
-    const title = prompt("Enter a title for the new preset:");
-    if (!title) return;
-    
-    try {
-      setSaving(true);
-      const { id } = await createPreset({
-        title,
-        prompt: "Enter your custom prompt here..."
-      });
-      
-      const newPreset: PromptPreset = {
-        id,
-        uid: 'current_user',
-        title,
-        prompt: "Enter your custom prompt here...",
-        is_default: 0,
-        created_at: Date.now(),
-        sync_state: 'clean'
-      };
-      
-      setAllPresets(prev => [...prev, newPreset]);
-      setSelectedPreset(newPreset);
-      setEditorContent(newPreset.prompt);
-      setIsDirty(false);
-    } catch (error) {
-      console.error("Failed to create preset:", error);
-      alert("Failed to create preset. See console for details.");
-    } finally {
-      setSaving(false);
-    }
+    setTextModalTitle('Enter a title for the new preset');
+    setTextModalDefault('');
+    setTextModalValue('');
+    setTextModalOnSubmit(() => async (value: string) => {
+      if (!value) return;
+      try {
+        setSaving(true);
+        const { id } = await createPreset({
+          title: value,
+          prompt: 'Enter your custom prompt here...'
+        });
+        const newPreset: PromptPreset = {
+          id,
+          uid: 'current_user',
+          title: value,
+          prompt: 'Enter your custom prompt here...',
+          is_default: 0,
+          created_at: Date.now(),
+          sync_state: 'clean'
+        };
+        setAllPresets(prev => [...prev, newPreset]);
+        setSelectedPreset(newPreset);
+        setEditorContent(newPreset.prompt);
+        setIsDirty(false);
+      } catch (error) {
+        console.error('Failed to create preset:', error);
+        setBanner({ type: 'error', message: 'Failed to create preset. See console for details.' });
+      } finally {
+        setSaving(false);
+      }
+    });
+    setShowTextModal(true);
   };
 
   const handleDuplicatePreset = async () => {
     if (!selectedPreset) return;
-    
-    const title = prompt("Enter a title for the duplicated preset:", `${selectedPreset.title} (Copy)`);
-    if (!title) return;
-    
-    try {
-      setSaving(true);
-      const { id } = await createPreset({
-        title,
-        prompt: editorContent
-      });
-      
-      const newPreset: PromptPreset = {
-        id,
-        uid: 'current_user',
-        title,
-        prompt: editorContent,
-        is_default: 0,
-        created_at: Date.now(),
-        sync_state: 'clean'
-      };
-      
-      setAllPresets(prev => [...prev, newPreset]);
-      setSelectedPreset(newPreset);
-      setIsDirty(false);
-    } catch (error) {
-      console.error("Failed to duplicate preset:", error);
-      alert("Failed to duplicate preset. See console for details.");
-    } finally {
-      setSaving(false);
-    }
+    setTextModalTitle('Enter a title for the duplicated preset');
+    setTextModalDefault(`${selectedPreset.title} (Copy)`);
+    setTextModalValue(`${selectedPreset.title} (Copy)`);
+    setTextModalOnSubmit(() => async (value: string) => {
+      if (!value) return;
+      try {
+        setSaving(true);
+        const { id } = await createPreset({
+          title: value,
+          prompt: editorContent
+        });
+        const newPreset: PromptPreset = {
+          id,
+          uid: 'current_user',
+          title: value,
+          prompt: editorContent,
+          is_default: 0,
+          created_at: Date.now(),
+          sync_state: 'clean'
+        };
+        setAllPresets(prev => [...prev, newPreset]);
+        setSelectedPreset(newPreset);
+        setIsDirty(false);
+      } catch (error) {
+        console.error('Failed to duplicate preset:', error);
+        setBanner({ type: 'error', message: 'Failed to duplicate preset. See console for details.' });
+      } finally {
+        setSaving(false);
+      }
+    });
+    setShowTextModal(true);
   };
 
   if (loading) {
@@ -157,6 +183,11 @@ export default function PersonalizePage() {
 
   return (
     <div className="flex flex-col h-full">
+      {banner && (
+        <div className={`px-8 py-3 ${banner.type === 'error' ? 'bg-red-50 border-b border-red-100' : 'bg-blue-50 border-b border-blue-100'}`}>
+          <div className={`${banner.type === 'error' ? 'text-red-700' : 'text-blue-700'} text-sm`}>{banner.message}</div>
+        </div>
+      )}
       <div className="bg-white border-b border-gray-100">
         <div className="px-8 pt-8 pb-6">
           <div className="flex justify-between items-start">
@@ -270,6 +301,75 @@ export default function PersonalizePage() {
           />
         </div>
       </div>
+
+      {/* Text Input Modal */}
+      {showTextModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">{textModalTitle}</h3>
+            <input
+              autoFocus
+              type="text"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder={textModalDefault}
+              value={textModalValue}
+              onChange={(e) => setTextModalValue(e.target.value)}
+            />
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+                onClick={() => {
+                  setShowTextModal(false);
+                  setTextModalOnSubmit(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
+                onClick={async () => {
+                  const submit = textModalOnSubmit;
+                  setShowTextModal(false);
+                  if (submit) await submit(textModalValue.trim());
+                  setTextModalOnSubmit(null);
+                }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Modal */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Please Confirm</h3>
+            <p className="text-sm text-gray-700">{confirmMessage}</p>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+                onClick={() => {
+                  if (onCancel) onCancel();
+                  else setShowConfirmModal(false);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
+                onClick={() => {
+                  if (onConfirm) onConfirm();
+                  else setShowConfirmModal(false);
+                }}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

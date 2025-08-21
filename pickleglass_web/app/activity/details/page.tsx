@@ -32,6 +32,8 @@ function SessionDetailsContent() {
   const sessionId = searchParams.get('sessionId');
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [banner, setBanner] = useState<string | null>(null);
 
   useEffect(() => {
     if (userInfo && sessionId) {
@@ -52,13 +54,18 @@ function SessionDetailsContent() {
 
   const handleDelete = async () => {
     if (!sessionId) return;
-    if (!window.confirm('Are you sure you want to delete this activity? This cannot be undone.')) return;
+    setShowConfirmModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!sessionId) return;
     setDeleting(true);
+    setShowConfirmModal(false);
     try {
       await deleteSession(sessionId);
       router.push('/activity');
     } catch (error) {
-      alert('Failed to delete activity.');
+      setBanner('Failed to delete activity.');
       setDeleting(false);
       console.error(error);
     }
@@ -93,6 +100,9 @@ function SessionDetailsContent() {
 
   return (
     <div className="min-h-screen bg-[#FDFCF9] text-gray-800">
+        {banner && (
+          <div className="px-4 sm:px-6 lg:px-8 py-3 bg-red-50 border-b border-red-100 text-red-700 text-sm">{banner}</div>
+        )}
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="mb-8">
                 <Link href="/activity" className="text-sm text-gray-500 hover:text-gray-700 flex items-center">
@@ -181,6 +191,29 @@ function SessionDetailsContent() {
                 )}
             </div>
         </div>
+
+        {showConfirmModal && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirm Delete</h3>
+              <p className="text-sm text-gray-700">Are you sure you want to delete this activity? This cannot be undone.</p>
+              <div className="mt-6 flex justify-end gap-2">
+                <button
+                  className="px-4 py-2 rounded-md text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  onClick={() => setShowConfirmModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700"
+                  onClick={confirmDelete}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 }

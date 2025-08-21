@@ -72,7 +72,7 @@ export interface SessionDetails {
 }
 
 
-const isFirebaseMode = (): boolean => false;
+export const isHostedMode = (): boolean => true;
 
 
 let API_ORIGIN = process.env.NODE_ENV === 'development'

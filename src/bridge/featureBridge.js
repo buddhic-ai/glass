@@ -50,8 +50,7 @@ module.exports = {
 
     // User/Auth
     ipcMain.handle('get-current-user', () => authService.getCurrentUser());
-    ipcMain.handle('start-firebase-auth', async () => await authService.startFirebaseAuthFlow());
-    ipcMain.handle('firebase-logout', async () => await authService.signOut());
+    // Hosted auth is managed in web app
 
     // App
     ipcMain.handle('quit-application', () => app.quit());
@@ -62,7 +61,7 @@ module.exports = {
        
     // General
     ipcMain.handle('get-preset-templates', () => presetRepository.getPresetTemplates());
-    ipcMain.handle('get-web-url', () => process.env.pickleglass_WEB_URL || 'http://localhost:3000');
+    ipcMain.handle('get-web-url', () => process.env.revnautix_WEB_URL || 'http://localhost:3000');
 
     // Ollama
     ipcMain.handle('ollama:get-status', async () => await ollamaService.handleGetStatus());

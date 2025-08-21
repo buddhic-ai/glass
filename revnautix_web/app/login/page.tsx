@@ -1,8 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { auth } from '@/utils/firebase'
+import { supabase } from '@/utils/supabase'
 import { Chrome } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -18,69 +17,14 @@ export default function LoginPage() {
   }, [])
 
   const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider()
     setIsLoading(true)
-    
     try {
-      const result = await signInWithPopup(auth, provider)
-      const user = result.user
-      
-      if (user) {
-        console.log('✅ Google login successful:', user.uid)
-
-        if (isElectronMode) {
-          try {
-            const idToken = await user.getIdToken()
-            
-            const scheme = 'revnautix';
-            const deepLinkUrl = `${scheme}://auth-success?` + new URLSearchParams({
-              uid: user.uid,
-              email: user.email || '',
-              displayName: user.displayName || '',
-              token: idToken
-            }).toString()
-            
-            console.log('🔗 Return to electron app via deep link:', deepLinkUrl)
-            
-            window.location.href = deepLinkUrl
-            
-            // Maybe we don't need this
-            // setTimeout(() => {
-            //   alert('Login completed. Please return to Revnautix app.')
-            // }, 1000)
-            
-          } catch (error) {
-            console.error('❌ Deep link processing failed:', error)
-            alert('Login was successful but failed to return to app. Please check the app.')
-          }
-        } 
-        else if (typeof window !== 'undefined' && window.require) {
-          try {
-            const { ipcRenderer } = window.require('electron')
-            const idToken = await user.getIdToken()
-            
-            ipcRenderer.send('firebase-auth-success', {
-              uid: user.uid,
-              displayName: user.displayName,
-              email: user.email,
-              idToken
-            })
-            
-            console.log('📡 Auth info sent to electron successfully')
-          } catch (error) {
-            console.error('❌ Electron communication failed:', error)
-          }
-        } 
-        else {
-          router.push('/settings')
-        }
-      }
+      const { data, error } = await supabase.auth.signInWithOAuth({ provider: 'google' })
+      if (error) throw error
+      // Supabase redirects; in Electron we could handle deep links in future.
     } catch (error: any) {
       console.error('❌ Google login failed:', error)
-      
-      if (error.code !== 'auth/popup-closed-by-user') {
-        alert('An error occurred during login. Please try again.')
-      }
+      alert('An error occurred during login. Please try again.')
     } finally {
       setIsLoading(false)
     }

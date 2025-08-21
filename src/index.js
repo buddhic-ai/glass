@@ -18,7 +18,6 @@ const { startWebStack } = require('./main/webStack');
 const { setupWebDataHandlers } = require('./main/webDataHandlers');
 const { initAutoUpdater } = require('./main/autoUpdater');
 const listenService = require('./features/listen/listenService');
-const { initializeFirebase } = require('./features/common/services/firebaseClient');
 const databaseInitializer = require('./features/common/services/databaseInitializer');
 const authService = require('./features/common/services/authService');
 const path = require('node:path');
@@ -69,7 +68,6 @@ app.whenReady().then(async () => {
     });
 
     // Initialize core services
-    initializeFirebase();
     
     try {
         await databaseInitializer.initialize();
@@ -370,8 +368,7 @@ async function handleCustomUrl(url) {
 
         switch (action) {
             case 'login':
-            case 'auth-success':
-                await handleFirebaseAuthCallback(params);
+                // No-op: Web handles Supabase auth directly
                 break;
             case 'personalize':
                 handlePersonalizeFromUrl(params);
@@ -394,71 +391,6 @@ async function handleCustomUrl(url) {
     }
 }
 
-async function handleFirebaseAuthCallback(params) {
-    const userRepository = require('./features/common/repositories/user');
-    const { token: idToken } = params;
-
-    if (!idToken) {
-        console.error('[Auth] Firebase auth callback is missing ID token.');
-        // No need to send IPC, the UI won't transition without a successful auth state change.
-        return;
-    }
-
-    console.log('[Auth] Received ID token from deep link, exchanging for custom token...');
-
-    try {
-        const functionUrl = 'https://us-west1-pickle-3651a.cloudfunctions.net/pickleGlassAuthCallback';
-        const response = await fetch(functionUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: idToken })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-            throw new Error(data.error || 'Failed to exchange token.');
-        }
-
-        const { customToken, user } = data;
-        console.log('[Auth] Successfully received custom token for user:', user.uid);
-
-        const firebaseUser = {
-            uid: user.uid,
-            email: user.email || 'no-email@example.com',
-            displayName: user.name || 'User',
-            photoURL: user.picture
-        };
-
-        // 1. Sync user data to local DB
-        userRepository.findOrCreate(firebaseUser);
-        console.log('[Auth] User data synced with local DB.');
-
-        // 2. Sign in using the authService in the main process
-        await authService.signInWithCustomToken(customToken);
-        console.log('[Auth] Main process sign-in initiated. Waiting for onAuthStateChanged...');
-
-        // 3. Focus the app window
-        const { windowPool } = require('./window/windowManager.js');
-        const header = windowPool.get('header');
-        if (header) {
-            if (header.isMinimized()) header.restore();
-            header.focus();
-        } else {
-            console.error('[Auth] Header window not found after auth callback.');
-        }
-        
-    } catch (error) {
-        console.error('[Auth] Error during custom token exchange or sign-in:', error);
-        // The UI will not change, and the user can try again.
-        // Optionally, send a generic error event to the renderer.
-        const { windowPool } = require('./window/windowManager.js');
-        const header = windowPool.get('header');
-        if (header) {
-            header.webContents.send('auth-failed', { message: error.message });
-        }
-    }
-}
 
 function handlePersonalizeFromUrl(params) {
     console.log('[Custom URL] Personalize params:', params);
@@ -504,33 +436,33 @@ async function startWebStack() {
 
   const apiPort = await getAvailablePort();
   // Allow using an external Next.js dev server for hot reload
-  const externalWebUrl = process.env.pickleglass_WEB_URL && process.env.pickleglass_WEB_URL.startsWith('http')
-    ? process.env.pickleglass_WEB_URL
+  const externalWebUrl = process.env.revnautix_WEB_URL && process.env.revnautix_WEB_URL.startsWith('http')
+    ? process.env.revnautix_WEB_URL
     : null;
   const frontendPort = externalWebUrl ? (new URL(externalWebUrl).port || '3000') : await getAvailablePort();
 
   console.log(`🔧 Allocated ports: API=${apiPort}, Frontend=${frontendPort}`);
 
-  process.env.pickleglass_API_PORT = apiPort.toString();
-  process.env.pickleglass_API_URL = `http://localhost:${apiPort}`;
-  process.env.pickleglass_WEB_PORT = frontendPort.toString();
+  process.env.revnautix_API_PORT = apiPort.toString();
+  process.env.revnautix_API_URL = `http://localhost:${apiPort}`;
+  process.env.revnautix_WEB_PORT = frontendPort.toString();
   if (!externalWebUrl) {
-    process.env.pickleglass_WEB_URL = `http://localhost:${frontendPort}`;
+    process.env.revnautix_WEB_URL = `http://localhost:${frontendPort}`;
   } else {
-    process.env.pickleglass_WEB_URL = externalWebUrl;
+    process.env.revnautix_WEB_URL = externalWebUrl;
   }
 
   console.log(`🌍 Environment variables set:`, {
-    pickleglass_API_URL: process.env.pickleglass_API_URL,
-    pickleglass_WEB_URL: process.env.pickleglass_WEB_URL
+    revnautix_API_URL: process.env.revnautix_API_URL,
+    revnautix_WEB_URL: process.env.revnautix_WEB_URL
   });
 
-  const createBackendApp = require('../pickleglass_web/backend_node');
+  const createBackendApp = require('../revnautix_web/backend_node');
   const nodeApi = createBackendApp(eventBridge);
 
   const staticDir = app.isPackaged
     ? path.join(process.resourcesPath, 'out')
-    : path.join(__dirname, '..', 'pickleglass_web', 'out');
+    : path.join(__dirname, '..', 'revnautix_web', 'out');
 
   const fs = require('fs');
 
@@ -538,7 +470,7 @@ async function startWebStack() {
     console.error(`============================================================`);
     console.error(`[ERROR] Frontend build directory not found!`);
     console.error(`Path: ${staticDir}`);
-    console.error(`Please run 'pnpm run build' inside the 'pickleglass_web' directory first.`);
+    console.error(`Please run 'pnpm run build' inside the 'revnautix_web' directory first.`);
     console.error(`============================================================`);
     app.quit();
     return;

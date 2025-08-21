@@ -14,8 +14,9 @@ contextBridge.exposeInMainWorld('api', {
   common: {
     // User & Auth
     getCurrentUser: () => ipcRenderer.invoke('get-current-user'),
-    startFirebaseAuth: () => ipcRenderer.invoke('start-firebase-auth'),
-    firebaseLogout: () => ipcRenderer.invoke('firebase-logout'),
+    // Hosted auth not handled via Electron; no-ops kept for compatibility
+    startHostedAuth: () => Promise.resolve({ success: false, error: 'Hosted auth handled on web' }),
+    hostedLogout: () => Promise.resolve({ success: true }),
     
     // App Control
       quitApplication: () => ipcRenderer.invoke('quit-application'),
@@ -203,8 +204,9 @@ contextBridge.exposeInMainWorld('api', {
     // User & Auth
     getCurrentUser: () => ipcRenderer.invoke('get-current-user'),
     openPersonalizePage: () => ipcRenderer.invoke('open-personalize-page'),
-    firebaseLogout: () => ipcRenderer.invoke('firebase-logout'),
-    startFirebaseAuth: () => ipcRenderer.invoke('start-firebase-auth'),
+    // No-op auth bridges (web handles Supabase)
+    hostedLogout: () => Promise.resolve({ success: true }),
+    startHostedAuth: () => Promise.resolve({ success: false, error: 'Hosted auth handled on web' }),
 
     // Model & Provider Management
     getModelSettings: () => ipcRenderer.invoke('settings:get-model-settings'), // Facade call

@@ -482,7 +482,7 @@ export class SettingsView extends LitElement {
     //////// after_modelStateService ////////
     static properties = {
         shortcuts: { type: Object, state: true },
-        firebaseUser: { type: Object, state: true },
+        hostedUser: { type: Object, state: true },
         isLoading: { type: Boolean, state: true },
         isContentProtectionOn: { type: Boolean, state: true },
         saving: { type: Boolean, state: true },
@@ -512,7 +512,7 @@ export class SettingsView extends LitElement {
         super();
         //////// after_modelStateService ////////
         this.shortcuts = {};
-        this.firebaseUser = null;
+        this.hostedUser = null;
         this.apiKeys = { openai: '', gemini: '', anthropic: '', whisper: '' };
         this.providerConfig = {};
         this.isLoading = true;
@@ -621,7 +621,7 @@ export class SettingsView extends LitElement {
                 window.api.settingsView.getCurrentShortcuts()
             ]);
             
-            if (userState && userState.isLoggedIn) this.firebaseUser = userState;
+            if (userState && userState.isLoggedIn) this.hostedUser = userState;
             
             if (modelSettings.success) {
                 const { config, storedKeys, availableLlm, availableStt, selectedModels } = modelSettings.data;
@@ -898,11 +898,10 @@ export class SettingsView extends LitElement {
 
 
     handleUsePicklesKey(e) {
-        e.preventDefault()
-        if (this.wasJustDragged) return
-    
-        console.log("Requesting Firebase authentication from main process...")
-        window.api.settingsView.startFirebaseAuth();
+        e.preventDefault();
+        if (this.wasJustDragged) return;
+        // Hosted login handled in web - show info or open web if needed
+        console.log('Hosted auth is web-managed.');
     }
     //////// after_modelStateService ////////
 
@@ -952,12 +951,12 @@ export class SettingsView extends LitElement {
         this._userStateListener = (event, userState) => {
             console.log('[SettingsView] Received user-state-changed:', userState);
             if (userState && userState.isLoggedIn) {
-                this.firebaseUser = userState;
+                this.hostedUser = userState;
             } else {
-                this.firebaseUser = null;
+                this.hostedUser = null;
             }
             this.loadAutoUpdateSetting();
-            // Reload model settings when user state changes (Firebase login/logout)
+            // Reload model settings when user state changes
             this.loadInitialData();
         };
         
@@ -1142,9 +1141,9 @@ export class SettingsView extends LitElement {
         window.api.settingsView.quitApplication();
     }
 
-    handleFirebaseLogout() {
-        console.log('Firebase Logout clicked');
-        window.api.settingsView.firebaseLogout();
+    handleHostedLogout() {
+        console.log('Hosted Logout clicked');
+        window.api.settingsView.hostedLogout?.();
     }
 
     async handleOllamaShutdown() {
@@ -1188,7 +1187,7 @@ export class SettingsView extends LitElement {
             `;
         }
 
-        const loggedIn = !!this.firebaseUser;
+        const loggedIn = !!this.hostedUser;
 
         const apiKeyManagementHTML = html`
             <div class="api-key-section">
@@ -1352,8 +1351,8 @@ export class SettingsView extends LitElement {
                     <div>
                         <h1 class="app-title">Revnautix</h1>
                         <div class="account-info">
-                            ${this.firebaseUser
-                                ? html`Account: ${this.firebaseUser.email || 'Logged In'}`
+                            ${this.hostedUser
+                                ? html`Account: ${this.hostedUser.email || 'Logged In'}`
                                 : `Account: Not Logged In`
                             }
                         </div>
@@ -1437,9 +1436,9 @@ export class SettingsView extends LitElement {
                     </button>
                     
                     <div class="bottom-buttons">
-                        ${this.firebaseUser
+                        ${this.hostedUser
                             ? html`
-                                <button class="settings-button half-width danger" @click=${this.handleFirebaseLogout}>
+                                <button class="settings-button half-width danger" @click=${this.handleHostedLogout}>
                                     <span>Logout</span>
                                 </button>
                                 `

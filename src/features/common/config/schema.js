@@ -5,8 +5,7 @@ const LATEST_SCHEMA = {
             { name: 'display_name', type: 'TEXT NOT NULL' },
             { name: 'email', type: 'TEXT NOT NULL' },
             { name: 'created_at', type: 'INTEGER' },
-            { name: 'auto_update_enabled', type: 'INTEGER DEFAULT 1' },
-            { name: 'has_migrated_to_firebase', type: 'INTEGER DEFAULT 0' }
+            { name: 'auto_update_enabled', type: 'INTEGER DEFAULT 1' }
         ]
     },
     sessions: {

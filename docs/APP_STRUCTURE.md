@@ -3,7 +3,7 @@
 This app is an Electron desktop application with two UI layers:
 
 - `src/`: Electron main process and the lightweight, always-on desktop UIs (header, listen, ask, compact settings) rendered via simple HTML/Lit.
-- `pickleglass_web/`: A Next.js web app that powers larger flows such as Settings, Personalize, and Activity. It can run via a dev server in development or be statically exported and served locally by Electron in production. (Brand: Revnautix)
+- `revnautix_web/`: A Next.js web app that powers larger flows such as Settings, Personalize, and Activity. It can run via a dev server in development or be statically exported and served locally by Electron in production.
 
 Electron coordinates both layers, exposes OS capabilities, manages windows, and bridges app logic to the renderers.
 
@@ -31,7 +31,7 @@ Electron coordinates both layers, exposes OS capabilities, manages windows, and 
     - `listen/`, `ask/`, `settings/`: Feature views used by compact windows.
     - `assets/`, `styles/`: Static assets and CSS for these UIs.
 
-- `pickleglass_web/`: Next.js application used by the desktop app for full pages
+- `revnautix_web/`: Next.js application used by the desktop app for full pages
   - `app/`: Route pages (e.g. `personalize`, `settings`, `activity`, `login`).
   - `components/`: Shared React components.
   - `utils/`: API and auth helpers. `utils/api.ts` points to the local API server started by Electron.
@@ -39,7 +39,6 @@ Electron coordinates both layers, exposes OS capabilities, manages windows, and 
   - `public/`, `tailwind.config.js`, `next.config.js`: Frontend assets and configuration (Next is configured for static export via `output: 'export'`).
 
 - `public/`: App-level assets bundled with Electron (not the Next public folder).
-- `functions/`: Firebase Cloud Functions (e.g., auth callback).
 - `docs/`: Project documentation (design patterns, this structure doc, refactor plans).
 - Build/config at root: `build.js`, `electron-builder.yml`, `scripts/`, etc.
 
@@ -51,8 +50,8 @@ On startup, `src/index.js`:
 
 1. Initializes core services (`databaseInitializer`, `authService`, `modelStateService`, etc.).
 2. Starts two local servers via `startWebStack()`:
-   - API server (Express) from `pickleglass_web/backend_node/` (listens on an available local port).
-   - Frontend server that serves the statically exported Next.js app from `pickleglass_web/out`.
+   - API server (Express) from `revnautix_web/backend_node/` (lists on an available local port).
+   - Frontend server that serves the statically exported Next.js app from `revnautix_web/out`.
      - In dev, if `pickleglass_WEB_URL` points to a Next dev server, Electron uses that instead.
 3. Creates Electron windows via `windowManager.createWindows()`:
    - Always-on header window, plus compact feature windows (`listen`, `ask`, `settings`).
@@ -66,11 +65,11 @@ Deep links such as `revnautix://personalize` are handled in `index.js` and route
 ## Development vs. Production
 
 - Dev (convenient hot-reload):
-  - Run the Next.js dev server in `pickleglass_web/` and start Electron with `pickleglass_WEB_URL` pointing to it.
+  - Run the Next.js dev server in `revnautix_web/` and start Electron with `revnautix_WEB_URL` pointing to it.
   - Root script `pnpm run dev` does this for you (see `package.json`).
 
 - Production / static mode:
-  - Build the Next.js app: `pnpm -C pickleglass_web run build` (outputs to `pickleglass_web/out`).
+  - Build the Next.js app: `pnpm -C revnautix_web run build` (outputs to `revnautix_web/out`).
   - Electron serves the static export locally; no external web server is required.
 
 Environment variables are set in `startWebStack()` and made available to both layers:
@@ -85,8 +84,8 @@ Environment variables are set in `startWebStack()` and made available to both la
 
 - Desktop window behavior and lifecycle: `src/window/windowManager.js`.
 - Small header/feature UIs: `src/ui/app/*` and feature views under `src/ui/*`.
-- Large flows (Personalize/Settings/Activity): `pickleglass_web/app/*`.
-- REST endpoints used by those pages: `pickleglass_web/backend_node/*`.
+- Large flows (Personalize/Settings/Activity): `revnautix_web/app/*`.
+- REST endpoints used by those pages: `revnautix_web/backend_node/*`.
 - Auth, models, persistence: `src/features/common/services/*`, `src/features/common/repositories/*`.
 - Provider configs and runtime defaults: `src/features/common/config/*`.
 

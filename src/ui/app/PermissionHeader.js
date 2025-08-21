@@ -267,7 +267,7 @@ export class PermissionHeader extends LitElement {
         keychainGranted: { type: String },
         isChecking: { type: String },
         continueCallback: { type: Function },
-        userMode: { type: String }, // 'local' or 'firebase'
+        userMode: { type: String }, // 'local' or 'hosted'
     };
 
     constructor() {
@@ -283,7 +283,7 @@ export class PermissionHeader extends LitElement {
     updated(changedProperties) {
         super.updated(changedProperties);
         if (changedProperties.has('userMode')) {
-            const newHeight = this.userMode === 'firebase' ? 280 : 220;
+            const newHeight = this.userMode === 'hosted' ? 280 : 220;
             console.log(`[PermissionHeader] User mode changed to ${this.userMode}, requesting resize to ${newHeight}px`);
             this.dispatchEvent(new CustomEvent('request-resize', {
                 detail: { height: newHeight },
@@ -352,7 +352,7 @@ export class PermissionHeader extends LitElement {
                 this.requestUpdate();
             }
 
-            const isKeychainRequired = this.userMode === 'firebase';
+            const isKeychainRequired = this.userMode === 'hosted';
             const keychainOk = !isKeychainRequired || this.keychainGranted === 'granted';
             
             // if all permissions granted == automatically continue
@@ -448,7 +448,7 @@ export class PermissionHeader extends LitElement {
     }
 
     async handleContinue() {
-        const isKeychainRequired = this.userMode === 'firebase';
+        const isKeychainRequired = this.userMode === 'hosted';
         const keychainOk = !isKeychainRequired || this.keychainGranted === 'granted';
 
         if (this.continueCallback && 
@@ -477,7 +477,7 @@ export class PermissionHeader extends LitElement {
     }
 
     render() {
-        const isKeychainRequired = this.userMode === 'firebase';
+        const isKeychainRequired = this.userMode === 'hosted';
         const containerHeight = isKeychainRequired ? 280 : 220;
         const keychainOk = !isKeychainRequired || this.keychainGranted === 'granted';
         const allGranted = this.microphoneGranted === 'granted' && this.screenGranted === 'granted' && keychainOk;

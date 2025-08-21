@@ -37,12 +37,12 @@ async function startWebStack(eventBridge) {
     revnautix_WEB_URL: process.env.revnautix_WEB_URL
   });
 
-  const createBackendApp = require('../../pickleglass_web/backend_node');
+  const createBackendApp = require('../../revnautix_web/backend_node');
   const nodeApi = createBackendApp(eventBridge);
 
   const staticDir = app.isPackaged
     ? path.join(process.resourcesPath, 'out')
-    : path.join(__dirname, '..', '..', 'pickleglass_web', 'out');
+    : path.join(__dirname, '..', '..', 'revnautix_web', 'out');
 
   const fs = require('fs');
 
@@ -50,7 +50,7 @@ async function startWebStack(eventBridge) {
     console.error('============================================================');
     console.error('[ERROR] Frontend build directory not found!');
     console.error(`Path: ${staticDir}`);
-    console.error("Please run 'pnpm run build' inside the 'pickleglass_web' directory first.");
+    console.error("Please run 'pnpm run build' inside the 'revnautix_web' directory first.");
     console.error('============================================================');
     app.quit();
     return;

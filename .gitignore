@@ -94,8 +94,8 @@ out/
 .specstory
 .specstory/
 
-pickleglass_web/backend/__pycache__/
-pickleglass_web/venv/
+revnautix_web/backend/__pycache__/
+revnautix_web/venv/
 
 # Node / JS
 node_modules/

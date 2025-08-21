@@ -425,7 +425,7 @@ const toggleContentProtection = () => {
 
 
 const openLoginPage = () => {
-    const webUrl = process.env.pickleglass_WEB_URL || 'http://localhost:3000';
+    const webUrl = process.env.revnautix_WEB_URL || 'http://localhost:3000';
     const personalizeUrl = `${webUrl}/personalize?desktop=true`;
     shell.openExternal(personalizeUrl);
     console.log('Opening personalization page in external browser:', personalizeUrl);
@@ -437,7 +437,7 @@ const openPersonalizePage = () => {
         console.error('[WindowManager] Header window not found for openPersonalizePage');
         return;
     }
-    const webUrl = process.env.pickleglass_WEB_URL || 'http://localhost:3000';
+    const webUrl = process.env.revnautix_WEB_URL || 'http://localhost:3000';
     const personalizeUrl = `${webUrl}/personalize?desktop=true`;
     console.log('Loading personalization page in app:', personalizeUrl);
     header.webContents.loadURL(personalizeUrl);
@@ -447,7 +447,7 @@ const openPersonalizePage = () => {
 
 const openPersonalizeWindow = () => {
     const existing = windowPool.get('personalize');
-    const webUrl = process.env.pickleglass_WEB_URL || 'http://localhost:3000';
+    const webUrl = process.env.revnautix_WEB_URL || 'http://localhost:3000';
     const personalizeUrl = `${webUrl}/personalize?desktop=true`;
 
     if (existing && !existing.isDestroyed()) {

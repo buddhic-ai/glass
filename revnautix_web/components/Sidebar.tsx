@@ -363,7 +363,7 @@ const SidebarComponent = ({ isCollapsed, onToggle, onSearchClick }: SidebarProps
                                     </li>
                                 ))}
                                 <li role="none">
-                                    {isFirebaseUser ? (
+                                    {isHostedUser ? (
                                         <button
                                             onClick={handleLogout}
                                             onKeyDown={e => handleKeyDown(e, handleLogout)}
@@ -456,7 +456,7 @@ const SidebarComponent = ({ isCollapsed, onToggle, onSearchClick }: SidebarProps
         return userInfo?.display_name ? userInfo.display_name.charAt(0).toUpperCase() : 'G';
     }, [userInfo, authLoading]);
 
-    const isFirebaseUser = userInfo && userInfo.uid !== 'default_user';
+    const isHostedUser = !!(userInfo && userInfo.uid !== 'default_user');
 
     return (
         <aside
@@ -597,7 +597,7 @@ const SidebarComponent = ({ isCollapsed, onToggle, onSearchClick }: SidebarProps
                         aria-label={`User: ${getUserDisplayName()}`}
                         onKeyDown={e =>
                             handleKeyDown(e, () => {
-                                if (isFirebaseUser) {
+                                if (isHostedUser) {
                                     router.push('/settings');
                                 } else {
                                     router.push('/login');

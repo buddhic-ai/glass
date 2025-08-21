@@ -33,6 +33,7 @@ class HeaderTransitionManager {
             // Create new header element
             if (type === 'welcome') {
                 this.welcomeHeader = document.createElement('welcome-header');
+                // Hosted auth is web-managed; keep callback to open web if needed in future
                 this.welcomeHeader.loginCallback = () => this.handleLoginOption();
                 this.welcomeHeader.apiKeyCallback = () => this.handleApiKeyOption();
                 this.headerContainer.appendChild(this.welcomeHeader);
@@ -147,9 +148,8 @@ class HeaderTransitionManager {
     // WelcomeHeader 콜백 메서드들
     async handleLoginOption() {
         console.log('[HeaderController] Login option selected');
-        if (window.api) {
-            await window.api.common.startFirebaseAuth();
-        }
+        // No-op; web handles Supabase login. Could open web login if needed.
+        return;
     }
 
     async handleApiKeyOption() {
@@ -204,10 +204,7 @@ class HeaderTransitionManager {
         let initialHeight = 220;
         if (window.api) {
             try {
-                const userState = await window.api.common.getCurrentUser();
-                if (userState.mode === 'firebase') {
-                    initialHeight = 280;
-                }
+                await window.api.common.getCurrentUser();
             } catch (e) {
                 console.error('Could not get user state for resize', e);
             }

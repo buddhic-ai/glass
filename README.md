@@ -117,15 +117,6 @@ We have a list of [help wanted](https://github.com/pickle-com/glass/issues?q=is%
 |--------|--------------------------------|---------------------------------------------------|
 | 🚧 WIP      | Liquid Glass                    | Liquid Glass UI for MacOS 26 |
 
-### Changelog
-
-- Jul 5: Now support Gemini, Intel Mac supported
-- Jul 6: Full code refactoring has done.
-- Jul 7: Now support Claude, LLM/STT model selection
-- Jul 8: Now support Windows(beta), Improved AEC by Rust(to seperate mic/system audio), shortcut editing(beta)
-- Jul 8: Now support Local LLM & STT, Firebase Data Storage 
-
-
 ## About Pickle
 
 **Our mission is to build a living digital clone for everyone.** Glass is part of Step 1—a trusted pipeline that transforms your daily data into a scalable clone. Visit [pickle.com](https://pickle.com) to learn more.

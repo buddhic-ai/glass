@@ -37,8 +37,7 @@ async function startWebStack(eventBridge) {
     revnautix_WEB_URL: process.env.revnautix_WEB_URL
   });
 
-  const createBackendApp = require('../../revnautix_web/backend_node');
-  const nodeApi = createBackendApp(eventBridge);
+  // Build our own lightweight API in main process (no dependency on revnautix_web)
 
   const staticDir = app.isPackaged
     ? path.join(process.resourcesPath, 'out')
@@ -98,7 +97,29 @@ async function startWebStack(eventBridge) {
   console.log(`✅ Frontend server started on http://localhost:${frontendPort}`);
 
   const apiSrv = express();
-  apiSrv.use(nodeApi);
+  // CORS for loopback from WinLoss-Test on 4000
+  apiSrv.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') return res.sendStatus(200);
+    next();
+  });
+  apiSrv.use(express.json());
+  apiSrv.get('/api/health', (req, res) => res.json({ ok: true }));
+  apiSrv.post('/api/auth/complete', async (req, res) => {
+    try {
+      const token = req.body && (req.body.token || req.body.access_token);
+      if (!token) return res.status(400).json({ success: false, error: 'Missing token' });
+      const authService = require('../features/common/services/authService');
+      const result = await authService.saveHostedToken(token);
+      return res.json({ success: !!result.success });
+    } catch (e) {
+      console.error('[Main API] /api/auth/complete error:', e.message);
+      return res.status(500).json({ success: false, error: 'Internal error' });
+    }
+  });
   await new Promise((resolve, reject) => {
     const server = apiSrv.listen(apiPort, '127.0.0.1', () => resolve(server));
     server.on('error', reject);

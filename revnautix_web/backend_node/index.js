@@ -7,11 +7,21 @@ function createApp(eventBridge) {
     const app = express();
 
     const webUrl = process.env.revnautix_WEB_URL || process.env.pickleglass_WEB_URL || 'http://localhost:3000';
-    console.log(`🔧 Backend CORS configured for: ${webUrl}`);
+    const allowedOrigins = [
+        webUrl,
+        'http://localhost:4000',
+        'http://127.0.0.1:4000'
+    ];
+    console.log(`🔧 Backend CORS configured for:`, allowedOrigins);
 
     app.use(cors({
-        origin: webUrl,
+        origin: function(origin, callback) {
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.includes(origin)) return callback(null, true);
+            return callback(new Error('Not allowed by CORS'));
+        },
         credentials: true,
+        optionsSuccessStatus: 200
     }));
 
     app.use(express.json());

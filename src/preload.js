@@ -205,8 +205,8 @@ contextBridge.exposeInMainWorld('api', {
     // User & Auth
     getCurrentUser: () => ipcRenderer.invoke('get-current-user'),
     openPersonalizePage: () => ipcRenderer.invoke('open-personalize-page'),
-    // No-op auth bridges (web handles Supabase)
-    hostedLogout: () => Promise.resolve({ success: true }),
+    // Hosted auth bridges
+    hostedLogout: () => ipcRenderer.invoke('auth:hostedLogout'),
     startHostedAuth: () => Promise.resolve({ success: false, error: 'Hosted auth handled on web' }),
 
     // Model & Provider Management

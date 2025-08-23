@@ -900,8 +900,10 @@ export class SettingsView extends LitElement {
     handleUsePicklesKey(e) {
         e.preventDefault();
         if (this.wasJustDragged) return;
-        // Hosted login handled in web - show info or open web if needed
-        console.log('Hosted auth is web-managed.');
+        if (window.api?.common?.openLoginPage) {
+            console.log('[SettingsView] Opening login via main (with apiPort)');
+            window.api.common.openLoginPage();
+        }
     }
     //////// after_modelStateService ////////
 

@@ -57,6 +57,14 @@ const PROVIDERS = {
       ],
       sttModels: [],
   },
+  'axcrew': {
+      name: 'AxCrew',
+      handler: () => require("./providers/axcrew"),
+      llmModels: [
+          { id: 'axcrew-pro', name: 'AxCrew Pro' },
+      ],
+      sttModels: [],
+  },
   'deepgram': {
     name: 'Deepgram',
     handler: () => require("./providers/deepgram"),
@@ -155,6 +163,7 @@ function getProviderClass(providerId) {
     const classNameMap = {
         'openai': 'OpenAIProvider',
         'anthropic': 'AnthropicProvider',
+        'axcrew': 'AxCrewProvider',
         'gemini': 'GeminiProvider',
         'deepgram': 'DeepgramProvider',
         'ollama': 'OllamaProvider',

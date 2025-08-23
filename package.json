@@ -9,6 +9,7 @@
         "start": "pnpm run build:renderer && electron .",
         "dev:web": "pnpm -C revnautix_web run dev",
         "dev": "revnautix_WEB_URL=http://localhost:3000 sh -c 'pnpm -C revnautix_web run dev & wait-on http://localhost:3000 && (pnpm run watch:renderer & pnpm exec electron .)'",
+        "dev:winloss": "WINLOSS_WEB_URL=http://localhost:3000 sh -c 'wait-on http://localhost:3000 && (pnpm run watch:renderer & pnpm exec electron .)'",
         "package": "pnpm run build:all && node scripts/prepare-whisper.js && electron-builder --dir",
         "make": "pnpm run build:renderer && electron-forge make",
         "build": "pnpm run build:all && node scripts/prepare-whisper.js && electron-builder --config electron-builder.yml --publish never",
@@ -40,20 +41,23 @@
         "@google/generative-ai": "^0.24.1",
         "axios": "^1.10.0",
         "better-sqlite3": "^9.6.0",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
         "cors": "^2.8.5",
         "dotenv": "^17.0.0",
         "electron-squirrel-startup": "^1.0.1",
         "electron-store": "^8.2.0",
         "electron-updater": "^6.6.2",
         "express": "^4.18.2",
-        
         "jsonwebtoken": "^9.0.2",
         "keytar": "^7.9.0",
+        "lucide-react": "^0.294.0",
         "node-fetch": "^2.7.0",
         "openai": "^4.70.0",
         "portkey-ai": "^1.10.1",
         "react-hot-toast": "^2.5.2",
         "sharp": "^0.34.2",
+        "tailwind-merge": "^3.3.1",
         "validator": "^13.11.0",
         "wait-on": "^8.0.3",
         "ws": "^8.18.0"
@@ -61,12 +65,13 @@
     "devDependencies": {
         "@electron/fuses": "^1.8.0",
         "@electron/notarize": "^2.5.0",
+        "cross-env": "^7.0.3",
         "electron": "^30.5.1",
         "electron-builder": "^26.0.12",
         "electron-reloader": "^1.2.3",
         "esbuild": "^0.25.5",
-        "cross-env": "^7.0.3",
-        "prettier": "^3.6.2"
+        "prettier": "^3.6.2",
+        "tailwindcss-animate": "^1.0.7"
     },
     "optionalDependencies": {
         "electron-liquid-glass": "^1.0.1"

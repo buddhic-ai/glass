@@ -1,4 +1,5 @@
 const { BrowserWindow, globalShortcut, screen, app, shell } = require('electron');
+const fetch = require('node-fetch');
 const WindowLayoutManager = require('./windowLayoutManager');
 const SmoothMovementManager = require('./smoothMovementManager');
 const path = require('node:path');
@@ -424,50 +425,35 @@ const toggleContentProtection = () => {
 };
 
 
-const openLoginPage = () => {
-    const existing = windowPool.get('login');
-    const webUrl = process.env.revnautix_WEB_URL || 'http://localhost:3000';
-    const loginUrl = `${webUrl}/login?mode=electron`;
-
-    if (existing && !existing.isDestroyed()) {
-        existing.show();
-        existing.focus();
-        existing.loadURL(loginUrl);
-        return;
+async function resolveLocalWebUrl(preferredUrl) {
+    const candidates = [];
+    if (preferredUrl) candidates.push(preferredUrl);
+    // Probe common dev ports
+    for (let port = 3000; port <= 3005; port++) {
+        const url = `http://localhost:${port}`;
+        if (!candidates.includes(url)) candidates.push(url);
     }
+    for (const base of candidates) {
+        const probeUrl = `${base}/login`;
+        try {
+            const res = await fetch(probeUrl, { method: 'HEAD' });
+            if (res.ok || res.status === 308 || res.status === 404) {
+                // Treat 200/308/404 as server responding; 404 can occur before full compile
+                return base;
+            }
+        } catch (_) { /* ignore */ }
+    }
+    return preferredUrl || 'http://localhost:3000';
+}
 
-    const loginWin = new BrowserWindow({
-        width: 1100,
-        height: 780,
-        minWidth: 900,
-        minHeight: 600,
-        show: true,
-        frame: true,
-        transparent: false,
-        vibrancy: false,
-        hasShadow: true,
-        skipTaskbar: false,
-        hiddenInMissionControl: false,
-        resizable: true,
-        fullscreenable: true,
-        title: 'Login',
-        webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true,
-            preload: path.join(__dirname, '../preload.js'),
-        },
-    });
-
-    loginWin.setContentProtection(isContentProtectionOn);
-    loginWin.loadURL(loginUrl);
-    windowPool.set('login', loginWin);
-
-    loginWin.on('closed', () => {
-        windowPool.delete('login');
-    });
-
-    if (!app.isPackaged) {
-        // loginWin.webContents.openDevTools({ mode: 'detach' });
+const openLoginPage = async () => {
+    const apiPort = process.env.revnautix_API_PORT || '';
+    const loginUrl = `http://localhost:4000/login?mode=electron${apiPort ? `&apiPort=${encodeURIComponent(apiPort)}` : ''}`;
+    console.log('[WindowManager] Opening login URL:', loginUrl, 'apiPort=', process.env.revnautix_API_PORT);
+    try {
+        await shell.openExternal(loginUrl);
+    } catch (error) {
+        console.error('[WindowManager] Failed to open login URL in external browser:', error);
     }
 };
 

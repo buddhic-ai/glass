@@ -229,6 +229,23 @@ async function handleCustomUrl(url) {
             case 'login':
                 // No-op: Web handles Supabase auth directly
                 break;
+            case 'auth':
+            case 'auth-success': {
+                try {
+                    const token = urlObj.searchParams.get('token') || urlObj.searchParams.get('access_token');
+                    if (!token) {
+                        console.warn('[Custom URL] Auth callback missing token');
+                        break;
+                    }
+                    console.log('[Custom URL] Received auth token:', token);
+                    const authService = require('./features/common/services/authService');
+                    const result = await authService.saveHostedToken(token);
+                    console.log('[Custom URL] Hosted token saved:', result.success);
+                } catch (e) {
+                    console.error('[Custom URL] Failed to handle auth callback:', e);
+                }
+                break;
+            }
             case 'personalize':
                 handlePersonalizeFromUrl(params);
                 break;

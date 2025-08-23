@@ -50,7 +50,9 @@ module.exports = {
 
     // User/Auth
     ipcMain.handle('get-current-user', () => authService.getCurrentUser());
-    // Hosted auth is managed in web app
+    ipcMain.handle('auth:saveHostedToken', async (event, token) => await authService.saveHostedToken(token));
+    ipcMain.handle('auth:getHostedToken', async () => await authService.getHostedToken());
+    ipcMain.handle('auth:hostedLogout', async () => await authService.saveHostedToken(null));
 
     // App
     ipcMain.handle('quit-application', () => app.quit());

@@ -10,9 +10,10 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.7.17",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@supabase/supabase-js": "^2.45.4",
     "autoprefixer": "^10.4.16",
     "axios": "^1.6.0",
-    "@supabase/supabase-js": "^2.45.4",
     "lucide-react": "^0.294.0",
     "next": "^14.2.30",
     "postcss": "^8.4.32",
